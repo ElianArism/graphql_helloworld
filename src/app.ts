@@ -1,8 +1,9 @@
 import cors from 'cors'
 import express from 'express'
 import compression from 'compression'
-import { graphqlHTTP } from 'express-graphql';
+import { ApolloServer } from 'apollo-server-express';
 import schema from './schema'
+import { createServer } from 'http';
 
 const app = express()
 
@@ -11,21 +12,20 @@ app.use(cors())
 app.use(compression())
 
 // routes (using express-graphql)
-app.use('/', 
-    
-    /**
-     *  init GraphQL console with Grapy
-     */    
-    graphqlHTTP({
-        schema,
-        graphiql: true
-    })
-)
+
+const server = new ApolloServer({
+    schema, 
+    introspection: true, 
+})
+
+server.applyMiddleware({ app } as any)
 
 // port config
 const port = 3000
 
-app.listen(
+const HttpServer = createServer(app)
+
+HttpServer.listen(
     port, 
     () => console.log(`Hello with GraphQL, Server: http://localhost:${port}/graphql`) 
 )

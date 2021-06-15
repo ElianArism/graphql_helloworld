@@ -1,5 +1,5 @@
 import { IResolvers } from '@graphql-tools/utils';
-import { query } from 'express';
+import query from './query';
 
 // Resolvers for create Schema 
 const resolvers: IResolvers = {    
