@@ -4,28 +4,53 @@ import compression from 'compression'
 import { ApolloServer } from 'apollo-server-express';
 import schema from './schema'
 import { createServer } from 'http';
+import environments from './config/environments';
+import Database from './config/database';
 
-const app = express()
+if(process.env.NODE_ENV !== 'production') {
+    const envs = environments; 
+    console.log(envs);
+}
 
-// Middlewares
-app.use(cors())
-app.use(compression())
+async function init() {
+    const app = express();
 
-// routes (using express-graphql)
+    // Middlewares
+    app.use(cors());
+    app.use(compression());
 
-const server = new ApolloServer({
-    schema, 
-    introspection: true, 
-})
+    // local database 
+    const db = await Database.init()
 
-server.applyMiddleware({ app } as any)
+    // Context of the connection (Connection data) || context information
+    const contextConnection: any = async({req, connection}: any) => {
+        /**
+         * To get the token there are two ways: 
+         * if the context of the connection are mutations or queries, the token is in the http request headers
+         * otherwise, the token is in the connection headers (in case of subscriptions)  
+         */
+        const token = req ? req.headers.authorization : connection.authorization; 
+        return {db, token};
+    }
 
-// port config
-const port = 3000
+    // routes (using express-graphql)
+    const server = new ApolloServer({
+        schema, 
+        context: contextConnection,
+        introspection: true, 
+    });
 
-const HttpServer = createServer(app)
+    server.applyMiddleware({ app } as any);
 
-HttpServer.listen(
-    port, 
-    () => console.log(`Hello with GraphQL, Server: http://localhost:${port}/graphql`) 
-)
+    // port config
+    const port = process.env.PORT;
+
+    const HttpServer = createServer(app);
+
+    HttpServer.listen(
+        port, 
+        () => console.log(`Hello with GraphQL, Server: http://localhost:${port}/graphql`) 
+    );
+}
+
+init();

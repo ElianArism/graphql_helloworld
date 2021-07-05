@@ -1,4 +1,54 @@
 type Query {
-    hello: String! 
-    helloWName(name: String!): String!
+    "Users List"
+    users: GetUsersResult!
+    
+    "Login User"
+    login(email: String!, password: String!): TokenResult!
+
+    "Get information from jwt" 
+    me: UserResult   
+}
+
+type Mutation {
+    "Register User"
+    register(user: UserInput): UserResult!
+}
+
+"User Schema"
+type User {
+    id: ID!
+    name: String!
+    lastName: String!
+    email: String!
+    password: String
+    registerDate: String!
+}
+
+"UserInput Schema"
+input UserInput {
+    name: String!
+    lastName: String! 
+    email: String!
+    password: String!
+}
+
+"User result Schema"
+type UserResult {
+    status: Boolean! 
+    message: String!
+    data: User
+}
+
+"Token result Schema"
+type TokenResult {
+    status: Boolean! 
+    message: String!
+    token: String
+}
+
+"Get Result Schema"
+type GetUsersResult {
+    status: Boolean! 
+    message: String!
+    data: [User]
 }
